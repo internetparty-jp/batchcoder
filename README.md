@@ -11,6 +11,8 @@
 ----------------
 
 ```
+> git clone git@github.com:miminashi/batchcoder.git
+> cd batchcoder
 > bundle ins --path vendor/bundle
 ```
 
