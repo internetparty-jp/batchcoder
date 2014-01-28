@@ -45,12 +45,13 @@ path = File.absolute_path(args[:file].to_s)
 
 # csv format 
 # 投票区,掲示場番号,住所,場所の名称（建物名など）,設置位置
+number_tmp = ""
 CSV.foreach(path, :headers => true ) do |row|
-  p row
   number = row[0].to_s
+  number_tmp = number if number_tmp != number and number != ""
   board_name = row[1].to_s
   address = row[2].to_s
-  subject = "掲示板番号: #{board_name} " + args[:address_prefix] + row[3].to_s
+  subject = args[:address_prefix] + number_tmp + '-' + board_name + " " + row[3].to_s
   lat, lng = Geocoder.coordinates(address)
   geometry = {:type => 'Point', :coordinates => [lng, lat]}.to_json
   p geometry
