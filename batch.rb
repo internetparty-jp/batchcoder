@@ -45,12 +45,12 @@ password = args[:password].to_s
 categories_json = open(CATEGORY_URL, {:http_basic_authentication => [user, password]}).read
 issue_categories = JSON.parser.new(categories_json).parse['issue_categories']
 categories = {}
-issue_categories.each_with_index { |c, idx| categories[idx+1] = c["name"] }
+issue_categories.each_with_index { |c, idx| categories[idx+1] = {:name => c["name"], :id => c["id"]} }
 
 puts 'カテゴリー番号を指定してね♥'
 line_count = 0
 categories.map do |k, v|
-  print "No.#{k}: #{v}".ljust(15, ' ') 
+  print "No.#{k}: #{v[:name]}".ljust(15, ' ') 
   line_count += 1
   if line_count == 3
     puts
@@ -59,8 +59,9 @@ categories.map do |k, v|
 end
 
 puts
-category_no = Readline.readline("No.? > ", true)
-final_category_name = categories[category_no.to_i].to_s
+category_no = Readline.readline("No.? > ", true).to_i
+final_category_id = categories[category_no][:id].to_i
+final_category_name = categories[category_no][:name].to_s
 
 answer = Readline.readline("#{final_category_name} で入力を始めます (y/n) ", true)
 if answer.downcase != "y"
@@ -92,7 +93,8 @@ CSV.foreach(path, :headers => true ) do |row|
         :subject => subject, 
         :description => address,
         :geometry => geometry, 
-        :project_id => PROJECT_ID
+        :project_id => PROJECT_ID,
+        :category_id => final_category_id
       }
     }.to_json
   end 
