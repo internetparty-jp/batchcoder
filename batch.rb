@@ -79,7 +79,7 @@ CSV.foreach(path, :headers => true ) do |row|
   number = row[0].to_s
   number_tmp = number if number_tmp != number and number != ""
   board_name = row[1].to_s
-  address = final_category_name + row[2].to_s
+  address = PREFECTURE + final_category_name + row[2].to_s
   subject = final_category_name + number_tmp + '-' + board_name + " " + row[3].to_s
   lat, lng = Geocoder.coordinates(address)
   geometry = {:type => 'Point', :coordinates => [lng, lat]}.to_json
