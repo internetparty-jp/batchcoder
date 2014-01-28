@@ -1,4 +1,4 @@
-#
+# -*- coding:utf-8 -*-
 # How to use
 #
 # $ ruby builder.rb USERNAME PASSWORD CSVFILEPATH
@@ -7,10 +7,12 @@
 require 'rubygems'
 require 'bundler/setup'
 
+require 'optparse'
 require 'csv'
 require 'geocoder'
 require 'faraday'
 
+OPTION = {}
 GTT_URL = 'http://beta.shirasete.jp/'
 PROJECT_ID = 22
 
@@ -20,24 +22,49 @@ conn = Faraday::Connection.new(:url => GTT_URL) do |builder|
   builder.use Faraday::Adapter::NetHttp     # Net/HTTP をアダプターに使う
 end
 
-user = ARGV[0]
-password = ARGV[1]
+args = {}
+OptionParser.new do |parser|
+  parser.on('-a', '--address-prefix Address prefix') { |v| args[:address_prefix] = v}
+  parser.on('-u', '--user shirasete.jp user') { |v| args[:user] = v }
+  parser.on('-p', '--password shirasete.jp password') { |v| args[:password] = v }
+  parser.on('-f', '--file csv file path') { |v| args[:file] = v }
+  parser.parse!(ARGV)
+end
+
+# ガードしとくかな...
+raise "住所がないですよ 'batch.rb -a 住所' で入力。" unless args[:address_prefix]
+raise "ユーザー名設定してー＾ー＾ 'batch.rb -u ユーザー名' " unless args[:user]
+raise "パスワード設定してー＾ー＾# 'batch.rb -u パスワード' " unless args[:password]
+raise "ファイル名指定してーーーー！ 'batch.rb -f ファイル名' " unless args[:file]
+
+user = args[:user].to_s
+password = args[:password].to_s
 conn.basic_auth user, password
 
-path = File.absolute_path(ARGV[2])
+path = File.absolute_path(args[:file].to_s)
 
-CSV.foreach(path) do |row|
+# csv format 
+# 投票区,掲示場番号,住所,場所の名称（建物名など）,設置位置
+CSV.foreach(path, :headers => true ) do |row|
   p row
-  number = row[0]
-  name = row[1]
-  address = row[2]
+  number = row[0].to_s
+  name = row[1].to_s
+  address = row[2].to_s
+  subject = args[:address_prefix] + row[3].to_s
   lat, lng = Geocoder.coordinates(address)
   geometry = {:type => 'Point', :coordinates => [lng, lat]}.to_json
   p geometry
   conn.post do |req|
     req.url '/issues.json'
     req.headers['Content-Type'] = 'application/json'
-    req.body = {:issue => {:subject => "#{number} #{name} #{address}", :geometry => geometry, :project_id => PROJECT_ID}}.to_json
+    req.body = {
+      :issue => {
+        :subject => subject, 
+        :description => address,
+        :geometry => geometry, 
+        :project_id => PROJECT_ID
+      }
+    }.to_json
   end 
   puts
 end
