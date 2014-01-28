@@ -48,9 +48,9 @@ path = File.absolute_path(args[:file].to_s)
 CSV.foreach(path, :headers => true ) do |row|
   p row
   number = row[0].to_s
-  name = row[1].to_s
+  board_name = row[1].to_s
   address = row[2].to_s
-  subject = args[:address_prefix] + row[3].to_s
+  subject = "掲示板番号: #{board_name} " + args[:address_prefix] + row[3].to_s
   lat, lng = Geocoder.coordinates(address)
   geometry = {:type => 'Point', :coordinates => [lng, lat]}.to_json
   p geometry
