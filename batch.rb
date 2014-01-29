@@ -12,6 +12,11 @@ require 'csv'
 require 'geocoder'
 require 'faraday'
 require 'json'
+require 'nkf'
+
+def translate(message)
+  message.tr('０-９', '0-9').tr('ー','-')
+end
 
 PREFECTURE = "東京都"
 OPTION = {}
@@ -77,10 +82,10 @@ path = File.absolute_path(args[:file].to_s)
 # 投票区,掲示場番号,住所,場所の名称（建物名など）,設置位置
 number_tmp = ""
 CSV.foreach(path, :headers => true ) do |row|
-  number = row[0].to_s
+  number = translate(row[0].to_s)
   number_tmp = number if number_tmp != number and number != ""
-  board_name = row[1].to_s
-  address = PREFECTURE + final_category_name + row[2].to_s
+  board_name = translate(row[1].to_s)
+  address = PREFECTURE + final_category_name + translate(row[2].to_s)
   subject = final_category_name + number_tmp + '-' + board_name + " " + row[3].to_s
   lat, lng = Geocoder.coordinates(address)
   geometry = {:type => 'Point', :coordinates => [lng, lat]}.to_json
@@ -100,4 +105,3 @@ CSV.foreach(path, :headers => true ) do |row|
   end 
   puts
 end
-
