@@ -26,3 +26,8 @@
 ```
 
 - カテゴリーを聞かれるので番号を入力してください！
+
+LICENSE
+-------
+
+[MIT](http://opensource.org/licenses/MIT)
